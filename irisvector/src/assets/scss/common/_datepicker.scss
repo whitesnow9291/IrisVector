@@ -1,0 +1,18 @@
+.DateRangePicker {
+    .DayPicker__horizontal {
+        -webkit-box-shadow: 0 10px 50px 0 rgba(0,0,0,.2);
+        box-shadow: 0 10px 50px 0 rgba(0,0,0,.2);
+    }
+    .DateInput_input {
+        font-size: 14px;
+        color: #555;
+        font-weight: 400;
+    }
+    .DateRangePickerInput_arrow {
+        display: none;
+    }
+    .DateRangePickerInput {
+        display: flex;
+        justify-content: space-between;
+    }
+}

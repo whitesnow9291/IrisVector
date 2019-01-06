@@ -1,0 +1,42 @@
+{
+  "rules": {
+    "hurricanes": {
+      ".indexOn": [
+        ".key",
+        "YEAR"
+      ],
+      ".read": "true"
+    },
+    "hurricanedetails": {
+      ".indexOn": [
+        "YEAR"
+      ],
+      ".read": "true"
+    },
+    "listener": {
+      "orders": {
+        "$stormId": {
+          "$userId": {
+            ".read": "auth.uid == $userId",
+            ".write": "auth.uid == $userId"
+          }
+        }
+      }
+    },
+    "orders": {
+      "$stormId": {
+        "$userId": {
+          ".read": "auth.uid != null  && query.orderByKey && query.equalTo == auth.uid"
+        }
+      },
+      ".read": "auth.uid != null"
+    },
+    "internal": {
+      "hurricaneseed": {
+        ".indexOn": [
+          "status"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Display a map</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+
+    <script type="text/javascript" src="HexagonTools.js"></script>
+    <script type="text/javascript" src='HexCalcs.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; width: 800px; height: 800px }
+        #result { position: absolute; right: 0;}
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<textarea id='result'>
+
+</textarea>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1Ijoibm9tdXJhbm9yaSIsImEiOiJjam04MHFwY2MwdXJ1M3dxcWtyNGVqenRoIn0.qtjb1EsVIJGRY36hiD5sIg';
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/mapbox/streets-v9', // stylesheet location
+    zoom: 0 // starting zoom
+});
+map.on('load', function () {
+  let hexs = getHexGridZR(10, 2 / Math.sqrt(3), 800, 800);
+  let json_hexs = []
+  for (let i = 0; i < hexs.Hexes.length; i++) {
+      let coordinates = [];
+      for (let j = 0; j < hexs.Hexes[i].Points.length; j++) {
+        let x = hexs.Hexes[i].Points[j].X;
+        let y = hexs.Hexes[i].Points[j].Y;
+        let coordinate = map.unproject([x, y]);
+        coordinates.push([coordinate.lng, coordinate.lat]);
+      }
+      let topleft = map.unproject([hexs.Hexes[i].TopLeftPoint.X,hexs.Hexes[i].TopLeftPoint.Y]);
+      let topright = map.unproject([hexs.Hexes[i].TopRightPoint.X,hexs.Hexes[i].TopRightPoint.Y]);
+      let bottomleft = map.unproject([hexs.Hexes[i].BottomLeftPoint.X,hexs.Hexes[i].BottomLeftPoint.Y]);
+      let bottomright = map.unproject([hexs.Hexes[i].BottomRightPoint.X,hexs.Hexes[i].BottomRightPoint.Y]);
+      let mid = map.unproject([hexs.Hexes[i].MidPoint.X,hexs.Hexes[i].MidPoint.Y]);
+      
+      let hex = {
+        coordinates: coordinates,
+        topleft: topleft,
+        topright: topright,
+        bottomleft: bottomleft,
+        bottomright: bottomright,
+        mid: mid,
+      };
+      json_hexs.push(hex);
+    }
+    initializeMap(json_hexs)
+    document.getElementById("result").value = JSON.stringify(json_hexs);
+})
+function initializeMap(gridData) {
+    let features = [];
+    console.info(gridData);
+    for (let i = 0; i < gridData.length; i++) {
+      let feature = {
+        type: "Feature",
+        properties: {
+          coordinate: gridData[i].coordinates,
+          entry: 200 + (i % 10) * 10,
+          color: i % 3,
+          matches: i % 50
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [gridData[i].coordinates]
+        }
+      };
+      features.push(feature);
+    }
+    map.addLayer({
+      id: "hexgrid",
+      type: "fill",
+      source: {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: features
+        }
+      },
+      layout: {},
+      paint: {
+        "fill-color": {
+          property: "color",
+          stops: [[0, "green"], [1, "blue"], [2, "red"]]
+        },
+        "fill-opacity": 0.1,
+        "fill-outline-color": "red"
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
